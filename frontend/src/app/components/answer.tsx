@@ -12,8 +12,7 @@ export const Token: FC<{
   clicked: number[] | null;
   setClicked: Dispatch<SetStateAction<number[] | null>>;
 }> = ({ markdown, index, token, setToken, clicked, setClicked }) => {
-  const handleDragStart = (event: React.DragEvent<HTMLDivElement>) => {
-  };
+  const handleDragStart = (event: React.DragEvent<HTMLDivElement>) => {};
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();

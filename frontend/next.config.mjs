@@ -7,7 +7,7 @@ export default (phase, { defaultConfig }) => {
     return {
       output: "export",
       assetPrefix: `${process.env.NEXT_PUBLIC_BASE_PATH}/ui/`,
-      basePath: `${process.env.NEXT_PUBLIC_BASE_PATH}/tevinw/ragviz/ui`,
+      basePath: `${process.env.NEXT_PUBLIC_BASE_PATH}/ui`,
       distDir: "../ui",
     };
   } else {
