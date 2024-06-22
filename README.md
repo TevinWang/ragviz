@@ -1,5 +1,7 @@
 # <img src="https://boston.lti.cs.cmu.edu/tevinw/ragviz/ui/ragviz-square.png" alt="drawing" width="50" height="50"/> <p>RAGViz</p>
 
+Demo: https://boston.lti.cs.cmu.edu/tevinw/ragviz/ui
+
 RAGViz (Retrieval Augmented Generation Visualization) is a tool that visualizes both document and token-level attention on the documents provided as context to the LLM.
 
 - RAGViz provides an add/remove document functionality to compare the generated tokens when certain documents are not included in the context.
