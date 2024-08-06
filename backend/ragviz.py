@@ -4,6 +4,7 @@ import os
 from fastapi import HTTPException, FastAPI, Request
 from fastapi.responses import JSONResponse
 import uvicorn
+import time
 
 from search.pile.search import PileSearch
 from snippet.naive_first import NaiveFirstSnippet
@@ -30,6 +31,7 @@ def query_function(item: dict) -> JSONResponse:
     The query can have the following fields:
         - query: the user query.
     """
+    start_time = time.perf_counter()
     query = item['query'] or _default_query
     # Basic attack protection: remove "[INST]" or "[/INST]" from the query
     query = re.sub(r"\[/?INST\]", "", query)
@@ -45,7 +47,11 @@ def query_function(item: dict) -> JSONResponse:
 
     rag_response = rag_client(query, results)
 
-    return JSONResponse(content=json.dumps(rag_response), media_type="application/json")
+    res = JSONResponse(content=json.dumps(rag_response), media_type="application/json")
+    end_time = time.perf_counter()
+    elapsed_time = end_time - start_time
+    print(f"TOTAL QUERY TIME: {elapsed_time} seconds")
+    return res
 
 # Define your API keys
 API_KEYS = {

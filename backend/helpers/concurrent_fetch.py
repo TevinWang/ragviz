@@ -1,8 +1,13 @@
 import requests
 import concurrent.futures
+import time
 
 def fetch(i, url, jsonquery):
+    start_time = time.perf_counter()
     response = requests.post(url, json=jsonquery)
+    end_time = time.perf_counter()
+    elapsed_time = end_time - start_time
+    print(f"ANNS TIME: {elapsed_time} seconds")
     return i, response.json()
 
 def fetch_all(urls, jsonquery):

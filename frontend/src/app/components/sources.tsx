@@ -154,7 +154,7 @@ const SourceItem: FC<{
           ))}
         </div>
 
-        <div className="flex gap-2 items-center">
+        {/* <div className="flex gap-2 items-center">
           <div className="flex-1 overflow-hidden">
             <div className="text-ellipsis whitespace-nowrap break-all text-zinc-950 overflow-hidden w-full">
               {index + 1} - {domain}
@@ -167,7 +167,7 @@ const SourceItem: FC<{
               src={`https://www.google.com/s2/favicons?domain=${domain}&sz=${16}`}
             />
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

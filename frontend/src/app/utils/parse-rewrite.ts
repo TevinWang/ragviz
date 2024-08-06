@@ -62,18 +62,37 @@ export const parseRewrite = async (
   let uint8Array = new Uint8Array();
   let chunks = "";
   let sourcesEmitted = false;
-  const filteredSources = sources.filter((source, index) =>
-    [keep[index][0].slice(1, -1), keep[index][1]].flat().some((e) => e == true),
-  );
-  const newSources = filteredSources.map((source, j) => ({
-    ...source,
-    name: source.nameTokens.filter((_, index) => keep[j][0][index]).join(""),
-    snippet: source.snippetTokens
-      .filter((_, index) => keep[j][0][index])
-      .join(""),
-    nameTokens: source.nameTokens.filter((_, index) => keep[j][0][index]),
-    snippetTokens: source.snippetTokens.filter((_, index) => keep[j][1][index]),
-  }));
+  const filteredIndexes: number[] = [];
+
+  const filteredSources = sources.filter((source, index) => {
+    const shouldKeep = [keep[index][0].slice(1, -1), keep[index][1]]
+      .flat()
+      .some((e) => e == true);
+    if (shouldKeep) {
+      filteredIndexes.push(index);
+    }
+    return shouldKeep;
+  });
+
+  const newSources = filteredSources.map((source, j) => {
+    const originalIndex = filteredIndexes[j];
+    return {
+      ...source,
+      originalIndex,
+      name: source.nameTokens
+        .filter((_, index) => keep[originalIndex][0][index])
+        .join(""),
+      snippet: source.snippetTokens
+        .filter((_, index) => keep[originalIndex][1][index])
+        .join(""),
+      nameTokens: source.nameTokens.filter(
+        (_, index) => keep[originalIndex][0][index],
+      ),
+      snippetTokens: source.snippetTokens.filter(
+        (_, index) => keep[originalIndex][1][index],
+      ),
+    };
+  });
   const url = `${process.env.NEXT_PUBLIC_BASE_PATH}/rewrite.cgi`;
 
   const response = await fetch(url, {

@@ -1,4 +1,4 @@
-from transformers import LlamaTokenizer, LlamaForCausalLM
+from transformers import LlamaTokenizer, LlamaForCausalLM, BitsAndBytesConfig
 import torch
 import numpy as np
 import os
@@ -13,14 +13,14 @@ import uvicorn
 import json
 
 def load_model(model_name, tp_size=1):
-    llm = LLM(model_name, tensor_parallel_size=tp_size, device=torch.device("cuda:0"))
+    llm = LLM(model_name, tensor_parallel_size=tp_size, device=torch.device("cuda:0"), gpu_memory_utilization=0.5)
     return llm
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 llama_path = os.get_env("RAG_MODEL")
 tokenizer = LlamaTokenizer.from_pretrained(llama_path, local_files_only=True)
-hf_model = LlamaForCausalLM.from_pretrained(llama_path, local_files_only=True, device_map="auto", load_in_8bit=True)
+hf_model = LlamaForCausalLM.from_pretrained(llama_path, local_files_only=True, device_map="auto", quantization_config=BitsAndBytesConfig(load_in_4bit=True), max_memory={0: "12GB"})
 
 torch.cuda.manual_seed(42)
 torch.manual_seed(42)
@@ -71,7 +71,12 @@ def vllm(model, query, docs, max_new_tokens=100, user_prompt=None, top_p=0.9, te
     sampling_param = SamplingParams(top_p=top_p, temperature=temperature, max_tokens=max_new_tokens)
 
     prompt = f"Context: {context}\n Question: {query} Answer in less than 100 tokens:"
+    start_time = time.perf_counter()
     outputs = model.generate(prompt, sampling_params=sampling_param)
+    end_time = time.perf_counter()
+    elapsed_time = end_time - start_time
+    print(f"VLLM CHAT COMPLETION TIME: {elapsed_time} seconds")
+    print(outputs)
 
     return input_ids, doc_starts, docs_len, input_len, outputs[0].outputs[0].text, doc_tokens
 
@@ -103,7 +108,11 @@ def hf(model, input_ids, doc_starts, docs_len, input_len, generated_text):
     generated_tokens = tokenizer.convert_ids_to_tokens(tokenizer(generated_text)['input_ids'])
     output_ids = torch.cat([input_ids, generated_ids], dim=-1).clone()
     with torch.no_grad():
+        start_time = time.perf_counter()
         outputs = model(output_ids, output_attentions=True)
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+        print(f"ATTENTION FORWARD PASS TIME: {elapsed_time} seconds")
     attentions = outputs.attentions
     n_heads = num_heads(attentions)
     include_layers = list(range(num_layers(attentions)))

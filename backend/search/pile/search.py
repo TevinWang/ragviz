@@ -3,6 +3,7 @@ sys.path.append("/home/tevinw/ragviz/backend")
 
 import requests
 import os
+import time
 from helpers.concurrent_fetch import fetch_all
 from helpers.range_dictionary import create_range_dictionary, query_range_dictionary
 from search.search import Search
@@ -43,6 +44,7 @@ class PileSearch(Search):
 
     prefixes = [0, 13981871, 13981871 + 13986302, 13981871 + 13986302 + 12237291]
 
+    start_time = time.perf_counter()
     responses = fetch_all(urls, jsonquery)
     
     merged_indices = []
@@ -56,11 +58,15 @@ class PileSearch(Search):
     # Sort indices based on distances
     sorted_indices = [index for _, index in sorted(zip(merged_distances, merged_indices))]
     indices = sorted_indices[:k]
+    end_time = time.perf_counter()
+    elapsed_time = end_time - start_time
+    print(f"QUERY AND RERANK TIME: {elapsed_time} seconds")
 
     results = []
 
     # Define a function to process each index
     def process_index(i):
+        start_time = time.perf_counter()
         subfolder, index = query_range_dictionary(self.range_dictionaries['pile'], i)
 
         subfolder_id = str(subfolder).zfill(2)
@@ -83,9 +89,14 @@ class PileSearch(Search):
             for current_line, row in enumerate(reader):
                 if current_line == line_number:
                     title = row[1]  # Assuming the first column is the title
-                    snippet = snippet_object.get_snippet(query, row[2])
-
-        return {"name": title, "url": "http://google.com", "snippet": snippet}
+                    end_time = time.perf_counter()
+                    elapsed_time = end_time - start_time
+                    print(f"PILE FETCH DOCUMENT TIME: {elapsed_time} seconds")
+                    snippet = snippet_object.get_snippet(embedding, row[2])
+                    break
+        res = {"name": title, "url": "http://google.com", "snippet": snippet}
+        end_time = time.perf_counter()
+        return res
 
     results = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
